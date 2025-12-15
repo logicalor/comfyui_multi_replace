@@ -84,12 +84,12 @@ app.registerExtension({
         node.updatePairVisibility();
 
         // Now add the buttons at the end
-        const addBtn = node.addWidget("button", "add_pair_btn", "➕ Add Pair", () => {
+        const addBtn = node.addWidget("button", "➕ Add Pair", null, () => {
             node.addNewPair();
         });
         addBtn.serializeValue = () => undefined; // Don't serialize button
 
-        const removeBtn = node.addWidget("button", "remove_pair_btn", "➖ Remove Last Pair", () => {
+        const removeBtn = node.addWidget("button", "➖ Remove Last Pair", null, () => {
             node.removeLastPair();
         });
         removeBtn.serializeValue = () => undefined; // Don't serialize button
