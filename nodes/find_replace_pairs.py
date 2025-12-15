@@ -43,7 +43,7 @@ class FindReplacePairs:
         return inputs
 
     RETURN_TYPES = ("FR_PAIRS", "STRING", "STRING",)
-    RETURN_NAMES = ("pairs", "json_output", "csv_output",)
+    RETURN_NAMES = ("pairs", "json", "csv",)
     OUTPUT_TOOLTIPS = (
         "Find/Replace pairs object for use with TextReplacer node",
         "JSON representation of the pairs",

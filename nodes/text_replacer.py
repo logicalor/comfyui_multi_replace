@@ -26,10 +26,6 @@ class TextReplacer:
                 }),
             },
             "optional": {
-                "input_text_connected": ("STRING", {
-                    "forceInput": True,
-                    "tooltip": "Connected text input (overrides widget)"
-                }),
                 "use_regex": ("BOOLEAN", {
                     "default": False,
                     "tooltip": "Treat find patterns as regular expressions"
@@ -46,7 +42,7 @@ class TextReplacer:
         }
 
     RETURN_TYPES = ("STRING", "FR_PAIRS", "STRING", "INT",)
-    RETURN_NAMES = ("result", "pairs_passthrough", "changes_log", "replacement_count",)
+    RETURN_NAMES = ("result", "pairs", "changes_log", "replacement_count",)
     OUTPUT_TOOLTIPS = (
         "The text after all replacements have been applied",
         "The find/replace pairs (passed through for chaining)",
@@ -62,7 +58,6 @@ class TextReplacer:
         self,
         pairs: dict,
         input_text: str = "",
-        input_text_connected: str = None,
         use_regex: bool = False,
         case_sensitive: bool = True,
         replace_all: bool = True
@@ -72,17 +67,15 @@ class TextReplacer:
 
         Args:
             pairs: The pairs object from FindReplacePairs node
-            input_text: Text widget value
-            input_text_connected: Connected text input (takes priority)
+            input_text: Text to perform replacements on
             use_regex: Whether to use regex matching
             case_sensitive: Whether matching is case-sensitive
             replace_all: Whether to replace all occurrences
 
         Returns:
-            Tuple of (result_text, pairs_passthrough, changes_log, replacement_count)
+            Tuple of (result_text, pairs, changes_log, replacement_count)
         """
-        # Use connected input if available
-        text = input_text_connected if input_text_connected is not None else input_text
+        text = input_text
 
         # Get the pairs list
         pairs_list = pairs.get("pairs", [])
@@ -140,8 +133,7 @@ class TextReplacer:
         return (result, pairs, changes_log, total_replacements)
 
     @classmethod
-    def IS_CHANGED(cls, pairs, input_text="", input_text_connected=None, **kwargs):
+    def IS_CHANGED(cls, pairs, input_text="", **kwargs):
         """Force re-evaluation when inputs change."""
-        text = input_text_connected if input_text_connected is not None else input_text
         pairs_hash = hash(str(pairs))
-        return hash((text, pairs_hash, str(kwargs)))
+        return hash((input_text, pairs_hash, str(kwargs)))
