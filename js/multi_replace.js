@@ -1,10 +1,11 @@
 import { app } from "../../scripts/app.js";
-import { ComfyWidgets } from "../../scripts/widgets.js";
 
 /**
  * ComfyUI Multi-Replace Extension
- * Handles dynamic addition of find/replace pair inputs
+ * Handles dynamic visibility of find/replace pair widgets
  */
+
+const MAX_PAIRS = 80;
 
 app.registerExtension({
     name: "comfyui-multi-replace",
@@ -19,14 +20,8 @@ app.registerExtension({
                 }
 
                 this.pairCount = 1;
-                this.serialize_widgets = true;
 
-                // Add input connectors for the first pair (widgets are already defined)
-                // Find the widgets for pair 1 and link them to inputs
-                this.addInput("find_1", "STRING");
-                this.addInput("replace_1", "STRING");
-
-                // Add the "Add Pair" button
+                // Add the "Add Pair" button at the end
                 this.addWidget("button", "➕ Add Pair", null, () => {
                     this.addNewPair();
                 });
@@ -36,87 +31,75 @@ app.registerExtension({
                     this.removeLastPair();
                 });
 
-                // Store reference to button widgets
-                this.addPairButton = this.widgets[this.widgets.length - 2];
-                this.removePairButton = this.widgets[this.widgets.length - 1];
-
-                this.updateRemoveButtonState();
+                // Initial visibility update
+                setTimeout(() => {
+                    this.updatePairVisibility();
+                }, 50);
             };
 
-            // Add a new find/replace pair
+            // Show the next pair
             nodeType.prototype.addNewPair = function() {
+                if (this.pairCount >= MAX_PAIRS) return;
                 this.pairCount++;
-                const idx = this.pairCount;
-
-                // Insert new widgets before the buttons
-                const buttonIndex = this.widgets.indexOf(this.addPairButton);
-
-                // Create find widget
-                const findWidget = ComfyWidgets.STRING(
-                    this,
-                    `find_${idx}`,
-                    ["STRING", { default: "", multiline: false }],
-                    app
-                ).widget;
-
-                // Create replace widget
-                const replaceWidget = ComfyWidgets.STRING(
-                    this,
-                    `replace_${idx}`,
-                    ["STRING", { default: "", multiline: false }],
-                    app
-                ).widget;
-
-                // Move the new widgets before the buttons
-                this.widgets.splice(this.widgets.length - 2, 2);
-                this.widgets.splice(buttonIndex, 0, findWidget, replaceWidget);
-                
-                // Re-add buttons at end
-                this.widgets.push(this.addPairButton, this.removePairButton);
-
-                // Add input connectors for the new pair
-                this.addInput(`find_${idx}`, "STRING");
-                this.addInput(`replace_${idx}`, "STRING");
-
-                this.updateRemoveButtonState();
-                this.setSize(this.computeSize());
-                app.graph.setDirtyCanvas(true, true);
+                this.updatePairVisibility();
             };
 
-            // Remove the last find/replace pair
+            // Hide the last pair
             nodeType.prototype.removeLastPair = function() {
                 if (this.pairCount <= 1) return;
-
-                const idx = this.pairCount;
-                const findName = `find_${idx}`;
-                const replaceName = `replace_${idx}`;
-
-                // Remove widgets
-                this.widgets = this.widgets.filter(w => 
-                    w.name !== findName && w.name !== replaceName
-                );
-
-                // Remove inputs if they were converted
-                const findInputIdx = this.inputs?.findIndex(i => i.name === findName);
-                if (findInputIdx !== undefined && findInputIdx >= 0) {
-                    this.removeInput(findInputIdx);
-                }
-                const replaceInputIdx = this.inputs?.findIndex(i => i.name === replaceName);
-                if (replaceInputIdx !== undefined && replaceInputIdx >= 0) {
-                    this.removeInput(replaceInputIdx);
-                }
-
+                
+                // Clear the values of the pair being removed
+                const findWidget = this.widgets?.find(w => w.name === `find_${this.pairCount}`);
+                const replaceWidget = this.widgets?.find(w => w.name === `replace_${this.pairCount}`);
+                if (findWidget) findWidget.value = "";
+                if (replaceWidget) replaceWidget.value = "";
+                
                 this.pairCount--;
-                this.updateRemoveButtonState();
-                this.setSize(this.computeSize());
-                app.graph.setDirtyCanvas(true, true);
+                this.updatePairVisibility();
             };
 
-            // Update remove button enabled state
-            nodeType.prototype.updateRemoveButtonState = function() {
-                if (this.removePairButton) {
-                    this.removePairButton.disabled = this.pairCount <= 1;
+            // Update visibility of pair widgets
+            nodeType.prototype.updatePairVisibility = function() {
+                if (!this.widgets) return;
+
+                for (const widget of this.widgets) {
+                    const match = widget.name?.match(/^(find|replace)_(\d+)$/);
+                    if (match) {
+                        const pairIndex = parseInt(match[2]);
+                        const shouldShow = pairIndex <= this.pairCount;
+
+                        if (shouldShow) {
+                            // Show widget
+                            widget.type = widget._originalType || widget.type;
+                            if (widget._originalComputeSize) {
+                                widget.computeSize = widget._originalComputeSize;
+                            }
+                        } else {
+                            // Hide widget
+                            if (widget.type !== "hidden") {
+                                widget._originalType = widget.type;
+                                widget._originalComputeSize = widget.computeSize;
+                            }
+                            widget.type = "hidden";
+                            widget.computeSize = () => [0, -4];
+                        }
+                    }
                 }
+
+                // Also hide/show the corresponding inputs
+                if (this.inputs) {
+                    for (const input of this.inputs) {
+                        const match = input.name?.match(/^(find|replace)_(\d+)$/);
+                        if (match) {
+                            const pairIndex = parseInt(match[2]);
+                            // We can't truly hide inputs, but we can mark them
+                            input._hidden = pairIndex > this.pairCount;
+                        }
+                    }
+                }
+
+                this.setSize(this.computeSize());
+                app.graph.setDirtyCanvas(true, true);
             };
 
             // Override getExtraMenuOptions to add right-click options
@@ -129,6 +112,7 @@ app.registerExtension({
                 options.unshift(
                     {
                         content: "Add Find/Replace Pair",
+                        disabled: this.pairCount >= MAX_PAIRS,
                         callback: () => this.addNewPair()
                     },
                     {
@@ -140,7 +124,7 @@ app.registerExtension({
                 );
             };
 
-            // Handle serialization to save dynamic widgets
+            // Save pair count
             const origOnSerialize = nodeType.prototype.onSerialize;
             nodeType.prototype.onSerialize = function(info) {
                 if (origOnSerialize) {
@@ -149,46 +133,21 @@ app.registerExtension({
                 info.pairCount = this.pairCount;
             };
 
-            // Handle deserialization to restore dynamic widgets
+            // Restore pair count and visibility
             const origOnConfigure = nodeType.prototype.onConfigure;
             nodeType.prototype.onConfigure = function(info) {
-                // Restore additional pairs before calling original
-                if (info.pairCount && info.pairCount > 1) {
-                    const targetCount = info.pairCount;
-                    
-                    // Add pairs up to saved count
-                    while (this.pairCount < targetCount) {
-                        this.addNewPair();
-                    }
-                }
-
                 if (origOnConfigure) {
                     origOnConfigure.apply(this, arguments);
                 }
 
-                // Restore widget values from saved state
-                if (info.widgets_values) {
-                    let valueIdx = 0;
-                    for (const widget of this.widgets) {
-                        if (widget.type !== "button" && valueIdx < info.widgets_values.length) {
-                            widget.value = info.widgets_values[valueIdx];
-                            valueIdx++;
-                        }
-                    }
+                if (info.pairCount) {
+                    this.pairCount = info.pairCount;
                 }
-            };
 
-            // Allow converting widgets to inputs for connections
-            const origOnInputAdded = nodeType.prototype.onInputAdded;
-            nodeType.prototype.onInputAdded = function(input) {
-                if (origOnInputAdded) {
-                    origOnInputAdded.apply(this, arguments);
-                }
+                setTimeout(() => {
+                    this.updatePairVisibility();
+                }, 50);
             };
         }
-    },
-
-    async nodeCreated(node) {
-        // Nothing special needed - widgets automatically support "Convert to Input"
     }
 });

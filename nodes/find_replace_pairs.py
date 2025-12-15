@@ -11,31 +11,36 @@ from aiohttp import web
 class FindReplacePairs:
     """
     A node that creates an arbitrary number of find/replace pairs.
-    Pairs are added dynamically via UI button.
+    Pairs are shown/hidden dynamically via UI button.
     """
+
+    MAX_PAIRS = 80
 
     @classmethod
     def INPUT_TYPES(cls):
         """
-        Define base inputs. Additional pairs are added dynamically via JS.
-        Text fields with optional input connectors that override widget values.
+        Define all possible pair inputs. JS will show/hide based on pair count.
         """
-        return {
+        inputs = {
             "required": {},
-            "optional": {
-                "find_1": ("STRING", {
-                    "default": "",
-                    "multiline": False,
-                }),
-                "replace_1": ("STRING", {
-                    "default": "",
-                    "multiline": False,
-                }),
-            },
+            "optional": {},
             "hidden": {
                 "unique_id": "UNIQUE_ID",
             }
         }
+
+        # Define all possible pairs - JS will control visibility
+        for i in range(1, cls.MAX_PAIRS + 1):
+            inputs["optional"][f"find_{i}"] = ("STRING", {
+                "default": "",
+                "multiline": False,
+            })
+            inputs["optional"][f"replace_{i}"] = ("STRING", {
+                "default": "",
+                "multiline": False,
+            })
+
+        return inputs
 
     RETURN_TYPES = ("FR_PAIRS", "STRING", "STRING",)
     RETURN_NAMES = ("pairs", "json_output", "csv_output",)
