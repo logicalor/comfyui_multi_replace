@@ -43,32 +43,9 @@ app.registerExtension({
                 this.pairCount++;
                 const idx = this.pairCount;
 
-                // Insert new widgets before the buttons
-                const buttonIndex = this.widgets.indexOf(this.addPairButton);
-
-                // Create find widget
-                const findWidget = ComfyWidgets.STRING(
-                    this,
-                    `find_${idx}`,
-                    ["STRING", { default: "", multiline: false, placeholder: `Find pattern ${idx}` }],
-                    app
-                ).widget;
-
-                // Create replace widget
-                const replaceWidget = ComfyWidgets.STRING(
-                    this,
-                    `replace_${idx}`,
-                    ["STRING", { default: "", multiline: false, placeholder: `Replacement ${idx}` }],
-                    app
-                ).widget;
-
-                // Move the new widgets before the buttons
-                // Remove from end and insert at button position
-                this.widgets.splice(this.widgets.length - 2, 2); // Remove the 2 new widgets from end
-                this.widgets.splice(buttonIndex, 0, findWidget, replaceWidget);
-                
-                // Re-add buttons at end
-                this.widgets.push(this.addPairButton, this.removePairButton);
+                // Add input connectors for find and replace
+                this.addInput(`find_${idx}`, "STRING");
+                this.addInput(`replace_${idx}`, "STRING");
 
                 this.updateRemoveButtonState();
                 this.setSize(this.computeSize());
@@ -83,16 +60,14 @@ app.registerExtension({
                 const findName = `find_${idx}`;
                 const replaceName = `replace_${idx}`;
 
-                // Find and remove the widgets
-                this.widgets = this.widgets.filter(w => 
-                    w.name !== findName && w.name !== replaceName
-                );
-
-                // Remove inputs if they exist
-                if (this.inputs) {
-                    this.inputs = this.inputs.filter(input =>
-                        input.name !== findName && input.name !== replaceName
-                    );
+                // Remove inputs
+                const findInputIdx = this.inputs?.findIndex(i => i.name === findName);
+                if (findInputIdx !== undefined && findInputIdx >= 0) {
+                    this.removeInput(findInputIdx);
+                }
+                const replaceInputIdx = this.inputs?.findIndex(i => i.name === replaceName);
+                if (replaceInputIdx !== undefined && replaceInputIdx >= 0) {
+                    this.removeInput(replaceInputIdx);
                 }
 
                 this.pairCount--;
@@ -179,14 +154,24 @@ app.registerExtension({
 
     async nodeCreated(node) {
         if (node.comfyClass === "FindReplacePairs") {
-            // Enable converting widgets to inputs (right-click -> Convert to Input)
-            if (node.widgets) {
-                for (const widget of node.widgets) {
-                    if (widget.name?.startsWith("find_") || widget.name?.startsWith("replace_")) {
-                        widget.convertToInput = true;
-                    }
+            // First pair should also be input connectors - convert widgets to inputs
+            setTimeout(() => {
+                // Remove the default widgets for find_1 and replace_1
+                if (node.widgets) {
+                    node.widgets = node.widgets.filter(w => 
+                        w.name !== "find_1" && w.name !== "replace_1"
+                    );
                 }
-            }
+                // Add as input connectors instead
+                if (!node.inputs?.find(i => i.name === "find_1")) {
+                    node.addInput("find_1", "STRING");
+                }
+                if (!node.inputs?.find(i => i.name === "replace_1")) {
+                    node.addInput("replace_1", "STRING");
+                }
+                node.setSize(node.computeSize());
+                app.graph.setDirtyCanvas(true, true);
+            }, 50);
         }
     }
 });
