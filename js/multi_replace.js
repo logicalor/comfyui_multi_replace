@@ -43,9 +43,31 @@ app.registerExtension({
                 this.pairCount++;
                 const idx = this.pairCount;
 
-                // Add input connectors for find and replace
-                this.addInput(`find_${idx}`, "STRING");
-                this.addInput(`replace_${idx}`, "STRING");
+                // Insert new widgets before the buttons
+                const buttonIndex = this.widgets.indexOf(this.addPairButton);
+
+                // Create find widget
+                const findWidget = ComfyWidgets.STRING(
+                    this,
+                    `find_${idx}`,
+                    ["STRING", { default: "", multiline: false }],
+                    app
+                ).widget;
+
+                // Create replace widget
+                const replaceWidget = ComfyWidgets.STRING(
+                    this,
+                    `replace_${idx}`,
+                    ["STRING", { default: "", multiline: false }],
+                    app
+                ).widget;
+
+                // Move the new widgets before the buttons
+                this.widgets.splice(this.widgets.length - 2, 2);
+                this.widgets.splice(buttonIndex, 0, findWidget, replaceWidget);
+                
+                // Re-add buttons at end
+                this.widgets.push(this.addPairButton, this.removePairButton);
 
                 this.updateRemoveButtonState();
                 this.setSize(this.computeSize());
@@ -60,7 +82,12 @@ app.registerExtension({
                 const findName = `find_${idx}`;
                 const replaceName = `replace_${idx}`;
 
-                // Remove inputs
+                // Remove widgets
+                this.widgets = this.widgets.filter(w => 
+                    w.name !== findName && w.name !== replaceName
+                );
+
+                // Remove inputs if they were converted
                 const findInputIdx = this.inputs?.findIndex(i => i.name === findName);
                 if (findInputIdx !== undefined && findInputIdx >= 0) {
                     this.removeInput(findInputIdx);
@@ -153,25 +180,6 @@ app.registerExtension({
     },
 
     async nodeCreated(node) {
-        if (node.comfyClass === "FindReplacePairs") {
-            // First pair should also be input connectors - convert widgets to inputs
-            setTimeout(() => {
-                // Remove the default widgets for find_1 and replace_1
-                if (node.widgets) {
-                    node.widgets = node.widgets.filter(w => 
-                        w.name !== "find_1" && w.name !== "replace_1"
-                    );
-                }
-                // Add as input connectors instead
-                if (!node.inputs?.find(i => i.name === "find_1")) {
-                    node.addInput("find_1", "STRING");
-                }
-                if (!node.inputs?.find(i => i.name === "replace_1")) {
-                    node.addInput("replace_1", "STRING");
-                }
-                node.setSize(node.computeSize());
-                app.graph.setDirtyCanvas(true, true);
-            }, 50);
-        }
+        // Nothing special needed - widgets automatically support "Convert to Input"
     }
 });

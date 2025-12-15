@@ -18,16 +18,18 @@ class FindReplacePairs:
     def INPUT_TYPES(cls):
         """
         Define base inputs. Additional pairs are added dynamically via JS.
-        All pairs are input connectors.
+        Text fields with optional input connectors that override widget values.
         """
         return {
             "required": {},
             "optional": {
                 "find_1": ("STRING", {
-                    "forceInput": True,
+                    "default": "",
+                    "multiline": False,
                 }),
                 "replace_1": ("STRING", {
-                    "forceInput": True,
+                    "default": "",
+                    "multiline": False,
                 }),
             },
             "hidden": {
