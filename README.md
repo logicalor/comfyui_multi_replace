@@ -5,9 +5,9 @@ A ComfyUI custom node package for creating and applying multiple find/replace pa
 ## Features
 
 - **Find/Replace Pairs Node**: Create an arbitrary number of find/replace pairs
-  - Supports up to 50 pairs per node
-  - Each pair can have values entered directly or connected from other nodes
-  - Dynamic UI shows only active pairs
+  - Starts with one pair, click "➕ Add Pair" button to add more
+  - Right-click menu also provides Add/Remove pair options
+  - Each pair can be converted to an input connector (right-click widget → Convert to Input)
   - Outputs: pairs object, JSON, and CSV formats
 
 - **Text Replacer Node**: Apply find/replace pairs to text
@@ -32,15 +32,15 @@ A ComfyUI custom node package for creating and applying multiple find/replace pa
 ### Basic Usage
 
 1. Add a **Find/Replace Pairs** node
-2. Set the number of pairs you need with `pair_count`
-3. Enter your find patterns and replacements
+2. Enter your find pattern and replacement in the first pair
+3. Click **➕ Add Pair** to add more pairs as needed
 4. Connect the `pairs` output to a **Text Replacer** node
 5. Enter or connect your input text
 6. Get the modified text from the `result` output
 
 ### Connecting Dynamic Values
 
-Each find/replace pair has optional input connectors (`find_N_input` and `replace_N_input`) that can receive values from other nodes. Connected inputs take priority over widget values.
+Right-click on any find or replace widget and select "Convert to Input" to create a connector that can receive values from other nodes.
 
 ### Chaining Replacers
 
@@ -65,11 +65,12 @@ The Text Replacer node passes through the pairs object, allowing you to chain mu
 
 | Input | Type | Description |
 |-------|------|-------------|
-| `pair_count` | INT | Number of active pairs (1-50) |
 | `find_N` | STRING | Find pattern for pair N |
 | `replace_N` | STRING | Replacement for pair N |
-| `find_N_input` | STRING (connector) | Optional connected find pattern |
-| `replace_N_input` | STRING (connector) | Optional connected replacement |
+
+**Buttons:**
+- **➕ Add Pair** - Add a new find/replace pair
+- **➖ Remove Last Pair** - Remove the last pair (disabled when only 1 pair exists)
 
 ### Text Replacer
 
