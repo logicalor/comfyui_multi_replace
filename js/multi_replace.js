@@ -21,6 +21,11 @@ app.registerExtension({
                 this.pairCount = 1;
                 this.serialize_widgets = true;
 
+                // Add input connectors for the first pair (widgets are already defined)
+                // Find the widgets for pair 1 and link them to inputs
+                this.addInput("find_1", "STRING");
+                this.addInput("replace_1", "STRING");
+
                 // Add the "Add Pair" button
                 this.addWidget("button", "➕ Add Pair", null, () => {
                     this.addNewPair();
@@ -68,6 +73,10 @@ app.registerExtension({
                 
                 // Re-add buttons at end
                 this.widgets.push(this.addPairButton, this.removePairButton);
+
+                // Add input connectors for the new pair
+                this.addInput(`find_${idx}`, "STRING");
+                this.addInput(`replace_${idx}`, "STRING");
 
                 this.updateRemoveButtonState();
                 this.setSize(this.computeSize());

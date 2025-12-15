@@ -7,7 +7,7 @@ A ComfyUI custom node package for creating and applying multiple find/replace pa
 - **Find/Replace Pairs Node**: Create an arbitrary number of find/replace pairs
   - Starts with one pair, click "➕ Add Pair" button to add more
   - Right-click menu also provides Add/Remove pair options
-  - Text fields with optional input connectors (right-click → Convert to Input)
+  - Each pair has both a text field AND an input connector
   - Connected inputs override widget values
   - Outputs: pairs object, JSON, and CSV formats
 
@@ -41,7 +41,7 @@ A ComfyUI custom node package for creating and applying multiple find/replace pa
 
 ### Connecting Dynamic Values
 
-Right-click any find or replace text field and select "Convert to Input" to create a connector. Connected inputs override the widget value, following the standard ComfyUI pattern.
+Each pair has both a text field for direct entry and an input connector on the left side. When a connector is linked, it overrides the widget value.
 
 ### Chaining Replacers
 
@@ -66,8 +66,8 @@ The Text Replacer node passes through the pairs object, allowing you to chain mu
 
 | Input | Type | Description |
 |-------|------|-------------|
-| `find_N` | STRING | Find pattern for pair N (text field, convertible to input) |
-| `replace_N` | STRING | Replacement for pair N (text field, convertible to input) |
+| `find_N` | STRING | Find pattern for pair N (text field + input connector) |
+| `replace_N` | STRING | Replacement for pair N (text field + input connector) |
 
 **Buttons:**
 - **➕ Add Pair** - Add a new find/replace pair
