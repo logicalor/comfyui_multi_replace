@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-multi-replace"
 description = "ComfyUI custom nodes for creating and applying multiple find/replace pairs to text"
-version = "1.0.0"
+version = "1.1.0"
 license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.8"
