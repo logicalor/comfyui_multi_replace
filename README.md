@@ -1,14 +1,15 @@
 # ComfyUI Multi-Replace
 
+[![ComfyUI](https://img.shields.io/badge/ComfyUI-Custom%20Node-blue)](https://github.com/comfyanonymous/ComfyUI)
+
 A ComfyUI custom node package for creating and applying multiple find/replace pairs to text.
 
 ## Features
 
 - **Find/Replace Pairs Node**: Create an arbitrary number of find/replace pairs
-  - Starts with one pair, click "➕ Add Pair" button to add more
+  - Starts with one pair, click "➕ Add Pair" button to add more (up to 80 pairs)
   - Right-click menu also provides Add/Remove pair options
-  - Each pair has both a text field AND an input connector
-  - Connected inputs override widget values
+  - Each pair has a text field with an input connector (connected inputs override widget values)
   - Outputs: pairs object, JSON, and CSV formats
 
 - **Text Replacer Node**: Apply find/replace pairs to text
@@ -16,7 +17,7 @@ A ComfyUI custom node package for creating and applying multiple find/replace pa
   - Supports regular expressions
   - Case-sensitive/insensitive matching
   - Replace all or first occurrence only
-  - Outputs: modified text, pairs passthrough (for chaining), changes log, and replacement count
+  - Outputs: modified text, pairs (for chaining), changes log, and replacement count
 
 ## Installation
 
@@ -51,12 +52,12 @@ The Text Replacer node passes through the pairs object, allowing you to chain mu
 
 **Find/Replace Pairs outputs:**
 - `pairs` - Internal pairs object for use with TextReplacer
-- `json_output` - JSON array of pairs: `[{"find": "...", "replace": "...", "index": 1}, ...]`
-- `csv_output` - CSV format: `find,replace` per line
+- `json` - JSON array of pairs: `[{"find": "...", "replace": "...", "index": 1}, ...]`
+- `csv` - CSV format: `find,replace` per line
 
 **Text Replacer outputs:**
 - `result` - The text after all replacements
-- `pairs_passthrough` - The pairs object (for chaining)
+- `pairs` - The pairs object (for chaining)
 - `changes_log` - Human-readable log of changes made
 - `replacement_count` - Total number of replacements performed
 
@@ -79,7 +80,6 @@ The Text Replacer node passes through the pairs object, allowing you to chain mu
 |-------|------|-------------|
 | `pairs` | FR_PAIRS | Pairs from FindReplacePairs node |
 | `input_text` | STRING | Text to perform replacements on |
-| `input_text_connected` | STRING (connector) | Optional connected text input |
 | `use_regex` | BOOLEAN | Treat patterns as regex |
 | `case_sensitive` | BOOLEAN | Case-sensitive matching |
 | `replace_all` | BOOLEAN | Replace all vs first occurrence |
@@ -87,3 +87,7 @@ The Text Replacer node passes through the pairs object, allowing you to chain mu
 ## License
 
 MIT License
+
+## Credits
+
+Created for use with [ComfyUI](https://github.com/comfyanonymous/ComfyUI).

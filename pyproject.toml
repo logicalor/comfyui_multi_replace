@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-multi-replace"
+description = "ComfyUI custom nodes for creating and applying multiple find/replace pairs to text"
+version = "1.0.0"
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.8"
+
+[project.urls]
+Repository = "https://github.com/logicalor/comfyui_multi_replace"
+
+[tool.comfy]
+PublisherId = "logicalor"
+DisplayName = "Multi-Replace"
+Icon = ""
